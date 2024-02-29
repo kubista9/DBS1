@@ -1,0 +1,166 @@
+1. Simple Company:
+
+Employee(ssn, salary, phone_num, dep_code)
+PK: ssn
+FK: dep_code references Department(code)
+
+Department(code, name, budget, manager_ssn)
+PK: code
+FK: manager_ssn references Employee(ssn)
+
+Child(name, parent_ssn)
+PK: name
+FK: parent_ssn references Employee(ssn)
+
+
+2. Library:
+
+Book(title, edition, pub_year, isbn, copy_no, status, loan_period)
+PK: isbn, copy_no
+derived: status (look at loans::loaned_out, and returned is null)
+
+Borrower(name, address, borrow_num)
+PK: borrow_num
+
+Loans(isbn, copy_no, borrow_num, loaned_out, returned)
+PK: isbn, copy_no, borrow_num, loaned_out
+FK:
+- (isbn, copy_no) references Book(isbn, copy)
+- borrow_num references Borrower(borrow_num)
+
+3. Arconia apartment complex
+Floor(no)
+PK: no
+
+ParkingSpot(id)
+PK: id
+
+Resident(name, id)
+PK: id
+
+Apartment(number, floor_no)
+PK: number, floor_no
+FK: floor_no ref Floor(no)
+
+lives_in(apt_no, floor_no, resident_id, start, end)
+PK: apt_no, floor_no, resident_id, start 			// I include start in case the same residents moves out and back in again later in the same apartment.
+FK: (apt_no, floor_no) ref Apartment(number, floor_no)
+FK: resident_id ref Resident(id)
+
+Owner(id, utilities, parking_spot_id)
+PK: id
+FK: id ref Resident(id)
+FK: parking_spot_id ref ParkingSpot(id)
+
+Tenant(id, rent)
+PK: id
+FK: id ref Resident(id)
+
+Cleans(floor_no, tenant_id, month)
+PK: floor_no, tenant_id, month
+FK: floor_no ref Floor(no)
+FK: tenant_id ref Tenant(id)
+
+4. BusStop
+
+Bus(licenseplate)
+PK: licenseplate
+
+Driver(name, id)
+PK: id
+
+Stop(id)
+PK: id
+
+Route(name, id)
+PK: id
+
+Departure(start_time, licenseplate, driver_id, route_id)
+PK: start_time, licenseplate, driver_id, route_id
+FK: licesenseplate ref Bus(licenseplate)
+FK: driver_id ref Driver(id)
+FK: route_id ref Route(id)
+
+CityStop(street, letter, stop_id)
+PK: stop_id
+FK: stop_id ref Stop(id)
+
+RuralStop(long, lat, stop_id)
+PK: stop_id
+FK: stop_id ref Stop(id)
+
+RouteStop(route_id, stop_id, number, arrival…)
+PK: route_id, stop_id
+FK: route_id ref Route(id)
+FK: stop_id ref Stop(id)
+
+
+5. Airport
+
+Terminal(id, name, location)
+PK: id
+
+Airline(id, name, contact_info)
+PK: id
+
+Aircraft(make, model, registration_no, airline_id)
+PK: registration_no
+FK: airline_id ref Airline(id)
+
+PassengerPlane(registration_no, capacity)
+PK: registration_no
+FK: registration_no ref Aircraft(registration_no)
+
+CargoPlane(registration_no, capacity)
+PK: registration_no
+FK: registration_no ref Aircraft(registration_no)
+
+
+	// passenger has relationship to PassengerPlane, this isn't really necessary. It really shouldn't be there :( 
+	// The same information is found by the relation to Flight
+	// It might be easier to map the inheritance hierarchy into just one relation/table
+Passenger(id, name, contact_info, passport_no)
+PK: passport_no // this was marked as AK, which might be a bit strange
+
+	// cargo has relationship to CargoPlane, this doesn't make sense. See above.
+Cargo(id, weight, flight_no)
+PK: id
+FK: flight_no ref Flight(flight_no)
+
+Destination(id, name)
+PK: id
+
+Gate(id, location, terminal_id)
+PK: id
+FK: terminal_id ref Terminal(id)
+
+Flight(flight_no, departure_time, arrival_time, airline_id, departure_gate, arrival_gate)
+PK: flight_no 			// again, not sure why it is marked with AK
+FK: airline_id ref Airline(id)
+FK: departure_gate ref Gate(id)
+FK: arrival_gate ref Gate(id)
+
+Baggage(id, weight, flight_no, passenger_id)
+PK: id
+FK: flight_no ref Flight(flight_no)
+FK: passenger_id ref Passenger(passport_no)
+
+AirlineTerminal(terminal_id, airline_id)
+PK: terminal_id, airline_id
+FK: terminal_id ref Terminal(id)
+FK: airline_id ref Airline(id)
+
+FlightDestination(dest_id, flight_no)
+PK: dest_id, flight_no
+FK: dest_id ref Destination(id)
+FK: flight_no ref Flight(flight_no)
+
+FlightPassenger(flight_no, passenger_id)
+PK:flight_no, passenger_id
+FK: flight_no ref Flight(flight_no)
+FK: passenger_id ref Passenger(passport_no)
+
+AircraftFlight(flight_no, aircraft_id)
+PK: flight_no, aircraft_id
+FK: flight_no ref Flight(flight_no)
+FK: aircraft_id ref Aircraft(registration_no)
